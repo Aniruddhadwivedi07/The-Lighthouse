@@ -1,0 +1,23 @@
+services:
+  postgres:
+    # pgvector/pgvector:pg15 ships PostgreSQL 15 with the pgvector extension
+    # pre-installed. Pinning to a specific digest would be more reproducible
+    # for production; the tag is sufficient for local development.
+    image: pgvector/pgvector:pg15
+    container_name: lighthouse_postgres
+    environment:
+      POSTGRES_USER: lighthouse
+      POSTGRES_PASSWORD: lighthouse
+      POSTGRES_DB: lighthouse
+    ports:
+      - "5432:5432"
+    volumes:
+      - lighthouse_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lighthouse -d lighthouse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  lighthouse_pgdata:
