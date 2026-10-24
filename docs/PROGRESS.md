@@ -48,6 +48,29 @@ This session was recorded before the local scaffold was fully assembled. The cur
 - `mypy app` was attempted after installing its pinned version but interrupted during startup after no output; type checking remains unverified.
 - `git diff --check`: passed.
 
+## Session 4 — 2026-10-25: Historical knowledge-base schema and data publication policy (Task 2)
+
+### Changes
+- Defined the canonical JSON Schema (Draft 2020-12) for Lighthouse historical records at `data/schemas/historical_record.schema.json`. Two record types (`problem_statement` and `project`) share common provenance, field-level verification, and ingestion metadata structures. The schema is machine-validatable and uses `oneOf` with `const` record_type for discrimination.
+- Created empty JSONL data files at `data/processed/problem_statements.jsonl` and `data/processed/projects.jsonl`. Files start empty; records are added only after provenance review. No fabricated records.
+- Created `data/data_card.md` documenting the dataset: schema design principles, collection process, file inventory, known biases, ethical considerations, and versioning policy.
+- Created `data/SOURCES.md` documenting the full data publication policy: accepted source types, collection procedure, redistribution rights assessment, attribution preservation, duplicate detection, corrections workflow, versioned publishing, source registry, domain vocabulary, and prohibited practices.
+- Added `jsonschema==4.23.0` to `backend/requirements-dev.txt` for schema validation tests.
+- Added 48 schema validation tests in `backend/tests/unit/test_historical_record_schema.py` covering: schema meta-validation, valid/invalid records for both types, licence policy enforcement (unknown ≠ open), provenance traceability, published data file validation, duplicate ID detection, and cross-type consistency.
+
+### Verification
+- `backend/.venv/bin/python -m pytest tests/unit/test_historical_record_schema.py -v`: 44 passed, 4 skipped (data files empty as expected), 0 failed.
+- Schema passes Draft 2020-12 meta-validation.
+- JSON Schema enforces: stable record IDs with type-specific prefixes, required provenance with source URL and licence status, constrained verification status enums, `additionalProperties: false` on all objects, unique tags, minimum team size of 1.
+- Missing licence information defaults to `"unknown"`, not `"open"` — enforced by both schema design and tests.
+- No fabricated historical records introduced.
+
+### Key design decisions
+- **Schema version embedded in records:** Every record carries `schema_version: "1.0.0"` as a `const`, enabling future schema evolution without breaking existing records.
+- **Field-level verification over record-level:** Rather than a single "verified" flag per record, each important field has its own `verification_status` (verified/inferred/unverified/unknown). This preserves the distinction between facts directly from the source and derived information.
+- **Conservative licence defaults:** The schema and policy require `licence_status: "unknown"` when licence information is unavailable. Tests actively verify that no record claims `"open"` without a `licence_identifier`.
+- **Empty initial dataset:** The JSONL files are intentionally empty. The acceptance criteria prohibit fabricating records; real records will be added during the curation phase (P1-04).
+
 ---
 
 ## Phase 1 — Vertical Slice (MVP)
@@ -95,12 +118,12 @@ This session was recorded before the local scaffold was fully assembled. The cur
 
 | Field | Value |
 |---|---|
-| Status | `NOT STARTED` |
-| Deliverable | ≥20 genuine, provenance-tracked problem statement JSON records in `backend/data/seed/` |
-| Files | `backend/data/seed/problem_statements.json`, `backend/data/seed/sources.json` |
-| Tests | Seed script runs idempotently; no duplicates inserted; all records have source URL |
-| Blockers | Manual curation required; licensing must be reviewed per record |
-| Next action | Draft seed records from documented public sources |
+| Status | `IN PROGRESS` |
+| Deliverable | Canonical JSON Schema for historical records, data publication policy, empty JSONL files, schema validation tests. Next: curate ≥20 genuine records. |
+| Files | `data/schemas/historical_record.schema.json`, `data/processed/problem_statements.jsonl`, `data/processed/projects.jsonl`, `data/data_card.md`, `data/SOURCES.md`, `backend/tests/unit/test_historical_record_schema.py` |
+| Tests | 48 schema validation tests: 44 passed, 4 skipped (empty data files). Schema meta-validation, valid/invalid fixtures, licence policy, provenance traceability, cross-type consistency. |
+| Blockers | Manual curation of genuine records still required; licensing must be reviewed per record |
+| Next action | Curate initial problem statement and project records from documented public sources following the policy in `data/SOURCES.md` |
 
 ---
 
