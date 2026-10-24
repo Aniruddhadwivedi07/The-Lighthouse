@@ -71,6 +71,38 @@ This session was recorded before the local scaffold was fully assembled. The cur
 - **Conservative licence defaults:** The schema and policy require `licence_status: "unknown"` when licence information is unavailable. Tests actively verify that no record claims `"open"` without a `licence_identifier`.
 - **Empty initial dataset:** The JSONL files are intentionally empty. The acceptance criteria prohibit fabricating records; real records will be added during the curation phase (P1-04).
 
+## Session 5 — 2026-10-25: Frontend foundation and design system shell (Task 3)
+
+### Changes
+- Implemented responsive application layout (`AppLayout.tsx`) with sticky header, responsive desktop and mobile navigation menus, and clean footer.
+- Added SVG Lighthouse branding component (`LighthouseLogo.tsx`) with deep ocean blue & amber palette.
+- Created reusable design system components under `apps/web/src/components/ui/`:
+  - `Button.tsx`: Accessible, typed button supporting primary, secondary, outline, ghost, and danger variants, 3 sizes (sm/md/lg), and loading spinner state.
+  - `Badge.tsx`: Semantic indicators for status and verification provenance (default, success, warning, error, neutral, outline).
+  - `Card.tsx`: Composable card container with Header, Title, Description, Content, and Footer.
+  - `FormControls.tsx`: Accessible Input, Textarea, Select, and FormField wrapper with error and helper text.
+  - `Alert.tsx`: Informational and dismissible alerts (info, success, warning, error).
+  - `Loading.tsx`: Accessible ARIA Spinner, Skeleton, and LoadingOverlay components.
+  - `FeedbackStates.tsx`: EmptyState and ErrorState feedback components with clean visuals and retry actions.
+- Configurable typed API client abstraction (`apps/web/src/api/client.ts`):
+  - Configurable backend base URL via `VITE_API_BASE_URL` with dev fallback to `/api`.
+  - Structured error parsing normalizing Axios/backend errors into typed `AppError` matching `backend/app/schemas/errors.py`.
+- Centralized frontend types (`apps/web/src/types/api.ts`) for health contracts, error envelopes, and UI shell views.
+- Created live `SystemStatusView.tsx` actively querying `/health` and `/health/ready` via `@tanstack/react-query` and `apiClient`.
+- Created interactive `ComponentShowcaseView.tsx` showcasing all reusable components, form validation, and feedback states.
+- Created transparent `PlannedWorkflowView.tsx` for planned modules (Team Profile, Knowledge Base, Candidate Generation, Blueprint) showing planned backend contracts and schema references without fabricating mock features.
+- Added comprehensive unit tests:
+  - `apps/web/src/api/client.test.ts` (6 tests for URL resolution, client creation, error parsing).
+  - `apps/web/src/components/ui/Components.test.tsx` (6 tests for Button, Badge, Alert, EmptyState, ErrorState).
+- Installed `@testing-library/jest-dom` for DOM test matchers.
+
+### Verification
+- `npm run typecheck`: passed with zero errors (`tsc --noEmit`).
+- `npm run lint`: passed with zero warnings/errors (`eslint`).
+- `npm run build`: passed (`tsc && vite build`).
+- `npm run test`: 12 passed across 2 test suites (`vitest run`).
+- No API secrets or environment keys are bundled in the frontend.
+
 ---
 
 ## Phase 1 — Vertical Slice (MVP)
@@ -209,12 +241,12 @@ This session was recorded before the local scaffold was fully assembled. The cur
 
 | Field | Value |
 |---|---|
-| Status | `NOT STARTED` |
-| Deliverable | Questionnaire, Results/Comparison, Blueprint pages in React + TS |
-| Files | `apps/web/src/pages/`, `apps/web/src/components/`, `apps/web/src/api/` |
-| Tests | Loading, error and empty states all render; form validates required fields |
-| Blockers | Depends on API routes being available |
-| Next action | Scaffold frontend after backend routes are defined |
+| Status | `IN PROGRESS` |
+| Deliverable | Questionnaire, Results/Comparison, Blueprint pages in React + TS. Application shell & design system foundation complete. |
+| Files | `apps/web/src/` |
+| Tests | Typecheck, lint, build, and vitest unit tests (12 passed); live status querying backend health |
+| Blockers | Depends on API routes being available for Questionnaire, Knowledge search, and Generation |
+| Next action | Integrate Questionnaire and Results views as respective backend endpoints are implemented |
 
 ---
 
