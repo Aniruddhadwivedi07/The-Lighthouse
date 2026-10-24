@@ -1,0 +1,343 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://the-lighthouse.dev/schemas/historical_record/v1.0.0",
+  "title": "Lighthouse Historical Record",
+  "description": "Canonical schema for Lighthouse historical knowledge-base records. Covers two record types: problem_statement and project. Every record carries provenance, licence, and field-level verification metadata. Schema version 1.0.0.",
+
+  "$defs": {
+    "verification_status": {
+      "type": "string",
+      "enum": ["verified", "inferred", "unverified", "unknown"],
+      "description": "Provenance status of a field value. 'verified' = confirmed from primary source. 'inferred' = derived from secondary evidence. 'unverified' = present but not checked. 'unknown' = no information available."
+    },
+
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "hackathon_platform",
+        "competition_archive",
+        "academic_publication",
+        "government_dataset",
+        "official_documentation",
+        "news_article",
+        "blog_post",
+        "repository_readme",
+        "conference_proceedings",
+        "other"
+      ],
+      "description": "Classification of the data source."
+    },
+
+    "licence_status": {
+      "type": "string",
+      "enum": ["open", "restricted", "proprietary", "unknown"],
+      "description": "High-level redistribution assessment. 'unknown' MUST be used when licence information is not available. Do NOT default to 'open'."
+    },
+
+    "provenance": {
+      "type": "object",
+      "description": "Source attribution and access metadata for the record.",
+      "properties": {
+        "source_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "The URL from which the record was obtained."
+        },
+        "publisher": {
+          "type": ["string", "null"],
+          "description": "Name of the platform, organisation or individual that published the source material."
+        },
+        "source_type": {
+          "$ref": "#/$defs/source_type"
+        },
+        "access_date": {
+          "type": "string",
+          "format": "date",
+          "description": "ISO 8601 date (YYYY-MM-DD) when the source was accessed."
+        },
+        "licence_identifier": {
+          "type": ["string", "null"],
+          "description": "SPDX licence identifier, URL, or free-text name of the licence. Null when licence is unknown."
+        },
+        "licence_status": {
+          "$ref": "#/$defs/licence_status"
+        },
+        "redistribution_note": {
+          "type": ["string", "null"],
+          "description": "Human-readable note about redistribution rights, caveats, or required attribution. Null if not assessed."
+        }
+      },
+      "required": [
+        "source_url",
+        "source_type",
+        "access_date",
+        "licence_status"
+      ],
+      "additionalProperties": false
+    },
+
+    "outcome": {
+      "type": "object",
+      "description": "Documented outcome of a historical project. Only include when evidence exists; never fabricate outcomes.",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "Brief factual description of the project outcome."
+        },
+        "evidence_url": {
+          "type": ["string", "null"],
+          "format": "uri",
+          "description": "URL to evidence supporting the claimed outcome."
+        },
+        "verification_status": {
+          "$ref": "#/$defs/verification_status"
+        }
+      },
+      "required": ["summary", "verification_status"],
+      "additionalProperties": false
+    },
+
+    "ingestion_metadata": {
+      "type": "object",
+      "description": "Metadata about when and how the record entered the Lighthouse dataset.",
+      "properties": {
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when this record was first ingested."
+        },
+        "ingested_by": {
+          "type": "string",
+          "description": "Identifier of the person or automated pipeline that ingested this record."
+        },
+        "last_reviewed_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of the most recent human review. Null if not yet reviewed."
+        },
+        "review_notes": {
+          "type": ["string", "null"],
+          "description": "Free-text notes from the most recent review. Null if none."
+        }
+      },
+      "required": ["ingested_at", "ingested_by"],
+      "additionalProperties": false
+    },
+
+    "problem_statement": {
+      "type": "object",
+      "description": "A historical problem statement issued at a hackathon, competition, or challenge.",
+      "properties": {
+        "record_id": {
+          "type": "string",
+          "pattern": "^ps-[a-z0-9]{8,32}$",
+          "description": "Stable, globally unique identifier for this problem statement. Prefix: ps-."
+        },
+        "record_type": {
+          "const": "problem_statement"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Short title of the problem statement."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Full text or summary of the problem statement."
+        },
+        "domain": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Primary domain or category (e.g. 'healthcare', 'education', 'sustainability')."
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "description": "Additional topic tags for discoverability."
+        },
+        "event_name": {
+          "type": ["string", "null"],
+          "description": "Name of the hackathon or competition event."
+        },
+        "event_date": {
+          "type": ["string", "null"],
+          "format": "date",
+          "description": "Date of the event (ISO 8601 YYYY-MM-DD). Null if unknown."
+        },
+        "requirements": {
+          "type": ["array", "null"],
+          "items": { "type": "string" },
+          "description": "Explicit requirements stated in the problem. Null if not documented."
+        },
+        "constraints": {
+          "type": ["array", "null"],
+          "items": { "type": "string" },
+          "description": "Explicit constraints stated in the problem. Null if not documented."
+        },
+        "technologies": {
+          "type": ["array", "null"],
+          "items": { "type": "string" },
+          "description": "Technologies explicitly mentioned in the problem statement. Null if none documented. Do NOT infer from other sources."
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "field_verification": {
+          "type": "object",
+          "description": "Per-field verification status for key fields. Allows consumers to distinguish verified facts from inferred or unverified data.",
+          "properties": {
+            "title": { "$ref": "#/$defs/verification_status" },
+            "description": { "$ref": "#/$defs/verification_status" },
+            "domain": { "$ref": "#/$defs/verification_status" },
+            "event_name": { "$ref": "#/$defs/verification_status" },
+            "event_date": { "$ref": "#/$defs/verification_status" },
+            "requirements": { "$ref": "#/$defs/verification_status" },
+            "constraints": { "$ref": "#/$defs/verification_status" },
+            "technologies": { "$ref": "#/$defs/verification_status" }
+          },
+          "required": ["title", "description", "domain"],
+          "additionalProperties": false
+        },
+        "ingestion": {
+          "$ref": "#/$defs/ingestion_metadata"
+        }
+      },
+      "required": [
+        "record_id",
+        "record_type",
+        "schema_version",
+        "title",
+        "description",
+        "domain",
+        "tags",
+        "provenance",
+        "field_verification",
+        "ingestion"
+      ],
+      "additionalProperties": false
+    },
+
+    "project": {
+      "type": "object",
+      "description": "A historical hackathon or competition project submission.",
+      "properties": {
+        "record_id": {
+          "type": "string",
+          "pattern": "^proj-[a-z0-9]{8,32}$",
+          "description": "Stable, globally unique identifier for this project. Prefix: proj-."
+        },
+        "record_type": {
+          "const": "project"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Title of the project."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Full text or summary description of the project."
+        },
+        "domain": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Primary domain or category."
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "description": "Additional topic tags."
+        },
+        "event_name": {
+          "type": ["string", "null"],
+          "description": "Name of the hackathon or competition."
+        },
+        "event_date": {
+          "type": ["string", "null"],
+          "format": "date",
+          "description": "Date of the event (ISO 8601). Null if unknown."
+        },
+        "problem_statement_id": {
+          "type": ["string", "null"],
+          "description": "Reference to the problem statement this project addressed, if known. Must match a record_id in problem_statements."
+        },
+        "requirements": {
+          "type": ["array", "null"],
+          "items": { "type": "string" },
+          "description": "Requirements the project aimed to meet. Null if not documented."
+        },
+        "constraints": {
+          "type": ["array", "null"],
+          "items": { "type": "string" },
+          "description": "Constraints the project operated under. Null if not documented."
+        },
+        "technologies": {
+          "type": ["array", "null"],
+          "items": { "type": "string" },
+          "description": "Technologies explicitly documented as used in the project. Do NOT infer from repository contents."
+        },
+        "team_size": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "Number of team members. Null if not documented."
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "field_verification": {
+          "type": "object",
+          "description": "Per-field verification status for key fields.",
+          "properties": {
+            "title": { "$ref": "#/$defs/verification_status" },
+            "description": { "$ref": "#/$defs/verification_status" },
+            "domain": { "$ref": "#/$defs/verification_status" },
+            "event_name": { "$ref": "#/$defs/verification_status" },
+            "event_date": { "$ref": "#/$defs/verification_status" },
+            "requirements": { "$ref": "#/$defs/verification_status" },
+            "constraints": { "$ref": "#/$defs/verification_status" },
+            "technologies": { "$ref": "#/$defs/verification_status" },
+            "team_size": { "$ref": "#/$defs/verification_status" }
+          },
+          "required": ["title", "description", "domain"],
+          "additionalProperties": false
+        },
+        "outcomes": {
+          "type": ["array", "null"],
+          "items": { "$ref": "#/$defs/outcome" },
+          "description": "Documented outcomes. Null if no outcomes are known. NEVER fabricate outcomes."
+        },
+        "ingestion": {
+          "$ref": "#/$defs/ingestion_metadata"
+        }
+      },
+      "required": [
+        "record_id",
+        "record_type",
+        "schema_version",
+        "title",
+        "description",
+        "domain",
+        "tags",
+        "provenance",
+        "field_verification",
+        "ingestion"
+      ],
+      "additionalProperties": false
+    }
+  },
+
+  "oneOf": [
+    { "$ref": "#/$defs/problem_statement" },
+    { "$ref": "#/$defs/project" }
+  ]
+}
