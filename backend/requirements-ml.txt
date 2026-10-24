@@ -1,0 +1,15 @@
+# ---------------------------------------------------------------------------
+# ML / Embedding dependencies — install after requirements.txt
+# These are separated because torch is large (~600 MB) and sentence-transformers
+# requires it. Installing separately lets CI and tests run quickly without ML.
+#
+# Install with:
+#   pip install -r requirements-ml.txt
+# ---------------------------------------------------------------------------
+-r requirements.txt
+
+sentence-transformers==3.3.1
+# torch: CPU-only build to keep download size manageable.
+# Replace with the CUDA variant if GPU acceleration is needed.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1+cpu
